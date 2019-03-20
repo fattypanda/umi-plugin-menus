@@ -1,8 +1,8 @@
 /**
- * title: 2
+ * title: 3-2
  */
 import React from 'react';
 
 export default function Second () {
-	return (<div>2</div>);
+	return (<div>3-2</div>);
 }
