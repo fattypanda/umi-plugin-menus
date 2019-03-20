@@ -1,12 +1,12 @@
 {
   "name": "umi-plugin-menus",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "routes to menus",
   "authors": {
     "name": "fattypanda",
     "email": "1076659852@qq.com"
   },
-  "repository": "/umi-plugins-menus",
+  "repository": "https://github.com/fattypanda/umi-plugin-menus.git",
   "peerDependencies": {
     "umi": "2.x"
   },
