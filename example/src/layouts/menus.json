@@ -1,0 +1,27 @@
+[
+  {
+    "path": "/",
+    "title": "首页",
+    "parentPath": "",
+    "children": [
+      {
+        "path": "/first",
+        "title": "第一个页面",
+        "parentPath": "/",
+        "children": []
+      },
+      {
+        "path": "/second",
+        "title": "第二个页面",
+        "parentPath": "/",
+        "children": []
+      },
+      {
+        "path": "/third",
+        "title": "第三个页面",
+        "parentPath": "/",
+        "children": []
+      }
+    ]
+  }
+]
