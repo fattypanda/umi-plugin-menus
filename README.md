@@ -13,6 +13,7 @@ PS: `routes` 更新时 `menus` 文件也会实时更新
 
 Configure in `.umirc.js` And `config/config.js`,
 
+.umirc.js
 ```js
 import { join } from 'path';
 
@@ -24,6 +25,35 @@ export default {
   ],
 }
 ```
+page.js
+```js
+/**
+ * title: 第一个页面
+ */
+import React from 'react';
+
+export default function First () {
+  return (<div>第一个页面</div>);
+}
+```
+menus.json
+```json 
+[
+  {
+    "path": "/",
+    "parentPath": "",
+    "children": [
+      {
+        "path": "/first",
+        "title": "第一个页面",
+        "parentPath": "/",
+        "children": []
+      }
+    ]
+  }
+]
+
+```
 
 ## Options
 
@@ -33,8 +63,8 @@ export default {
  * @param {string[]} [excludes=exact,component,Routes] - 返回忽略字段
  */
 export interface options {
-	build?: string,
-	excludes?: string[],
+  build?: string,
+  excludes?: string[],
 }
 ```
 
