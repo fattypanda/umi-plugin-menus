@@ -1,64 +1,27 @@
-import fs from 'fs';
-import path from 'path';
+const fs = require('fs');
+const path = require('path');
 
-import _get from 'lodash/get';
-import _set from 'lodash/set';
-import _find from 'lodash/find';
-import _forEach from 'lodash/forEach';
-import _isArray from 'lodash/isArray';
-import _isEmpty from 'lodash/isEmpty';
-import _omit from 'lodash/omit';
+const _set = require('lodash/set');
+const _map = require('lodash/map');
+const _isArray = require('lodash/isArray');
+const _isEmpty = require('lodash/isEmpty');
+const _omit = require('lodash/omit');
+const _compact = require('lodash/compact');
+const _orderBy = require('lodash/orderBy');
+const _cloneDeep = require('lodash/cloneDeep');
 
-function listToTree(data, options = {idKey: '', parentKey: '', childrenKey: ''}) {
-  options = options || {};
-  const ID_KEY = options.idKey || 'path';
-  const PARENT_KEY = options.parentKey || 'parentPath';
-  const CHILDREN_KEY = options.childrenKey || 'children';
-
-  const tree = [], childrenOf = {};
-  let item, id, parentId;
-
-  for(let i = 0, length = data.length; i < length; i++) {
-    item = data[i];
-    id = item[ID_KEY];
-    parentId = item[PARENT_KEY] || 0;
-    // every item may have children
-    childrenOf[id] = childrenOf[id] || [];
-    // init its children
-    item[CHILDREN_KEY] = childrenOf[id];
-    if (parentId !== 0) {
-      // init its parent's children object
-      childrenOf[parentId] = childrenOf[parentId] || [];
-      // push it into its parent's children object
-      childrenOf[parentId].push(item);
-    } else {
-      tree.push(item);
+function recursiveAnalysis (routes = [], parent = {}, opts = []) {
+  const {excludes = [], order = [[], []]} = opts;
+  return _orderBy(_compact(_map(routes, (route) => {
+    const {path, routes} = route;
+    if (!_isEmpty(path) || !_isEmpty(routes)) {
+      if (_isArray(routes)) {
+        _set(route, ['routes'], recursiveAnalysis(routes, route, opts));
+      }
+      return _omit(route, excludes);
     }
-  }
-
-  return tree;
-}
-
-function recursiveAnalysis (routes, parent, stack = [], opts = {excludes: []}) {
-  _forEach(routes, (route) => {
-    const {path} = route;
-    if (!path) return;
-
-    const {routes} = route;
-    if (route.path === parent.path) {
-      _set(route, ['parentPath'], parent.parentPath);
-    } else {
-      _set(route, ['parentPath'], parent.path);
-    }
-
-    if (_isArray(routes) && !_isEmpty(routes)) {
-      recursiveAnalysis(routes, route, stack, opts);
-    } else {
-      stack.push(_omit(route, opts.excludes));
-    }
-  });
-
-  return stack;
+    return void 0;
+  })), ...order);
 }
 
 const defaultOptions = {
@@ -67,7 +30,8 @@ const defaultOptions = {
     'exact',
     'component',
     'Routes'
-  ]
+  ],
+  order: [['order'], ['asc']]
 };
 
 let routesCache;
@@ -79,26 +43,16 @@ export default function (api, options) {
 
     if (!routesCache || JSON.stringify(routesCache) !== JSON.stringify(routes)) {
       routesCache = routes;
+      const _routes = _cloneDeep(routes);
       const {Signale} = api.log;
       const interactive = new Signale({interactive: true, scope: 'umi-plugin-menus'});
 
-      interactive.await('[%d/4] - start', 1);
-      //  判断 pages 下是否存在 index.js
-      const _routes = _get(routes, [0, 'routes']);
-      if (!_isEmpty(_routes)) {
-        if (!_find(_routes, ({path}) => path === '/')) {
-          _set(routes, [0, 'routes', _routes.length], {path: '/'});
-        }
-      }
+      interactive.await('[%d/3] - analysis routes...', 1);
+      const tree = recursiveAnalysis(_routes,  {}, opts);
 
-      interactive.await('[%d/4] - analysis routes...', 2);
-      const parent = {path: '/', parentPath: ''};
-      const list = recursiveAnalysis(routes, parent, [], {excludes: opts.excludes});
-      const tree = listToTree(list);
-
-      interactive.await('[%d/4] - build menus file...', 3);
+      interactive.await('[%d/3] - build menus file...', 2);
       fs.writeFileSync(opts.build, JSON.stringify(tree));
-      interactive.success('[%d/4] - build menus file done!', 4);
+      interactive.success('[%d/3] - build menus file done!', 3);
     }
 
     return routes;

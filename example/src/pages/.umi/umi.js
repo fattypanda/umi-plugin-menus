@@ -33,7 +33,7 @@ Promise.all(moduleBeforeRendererPromises).then(() => {
   window.console && window.console.error(err);
 });
 
-
+require('../../global.css');
 
 // hot module replacement
 if (module.hot) {
