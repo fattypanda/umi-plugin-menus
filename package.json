@@ -1,7 +1,14 @@
 {
   "name": "umi-plugin-menus",
-  "version": "0.2.0",
+  "version": "0.2.2",
   "description": "routes to menus",
+  "keywords": [
+    "umi",
+    "umi-plugin",
+    "umi-plugin-menus",
+    "menus",
+    "routes"
+  ],
   "authors": {
     "name": "fattypanda",
     "email": "1076659852@qq.com"

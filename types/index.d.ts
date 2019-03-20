@@ -6,7 +6,7 @@ declare enum OrderTypes {asc = 'asc', desc = 'desc'}
  * @param {[[string], [string]]} [order=[[order], ['asc']]] - 根据字段排序 参考 lodash/orderBy
  */
 export interface options {
-	build?: string,
-	excludes?: string[],
+  build?: string,
+  excludes?: string[],
   order?: [[string], [OrderTypes]]
 }

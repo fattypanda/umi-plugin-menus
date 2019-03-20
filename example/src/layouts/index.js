@@ -5,6 +5,11 @@ import Link from 'umi/link';
 import _get from 'lodash/get';
 import _map from 'lodash/map';
 import _find from 'lodash/find';
+import _uniq from 'lodash/uniq';
+import _concat from 'lodash/concat';
+import _compact from 'lodash/compact';
+import _split from 'lodash/split';
+import _slice from 'lodash/slice';
 import _toString from 'lodash/toString';
 import _isArray from 'lodash/isArray';
 import _isEmpty from 'lodash/isEmpty';
@@ -19,23 +24,25 @@ const menus = _get(routes, [0, 'routes']);
  * 递归生成菜单
  * @param {array} menus
  * @param {object} [parent]
- * @param {number} [parent.key]
+ * @param {string|number} [parent.key]
  * @param {array} stack
  * @returns {Array}
  */
 function recursiveMenus (menus, parent = {}, stack = []) {
   const {key: parentKey = ''} = parent;
 
-  return _map(menus, (menu, key) => {
+  return _compact(_map(menus, (menu, key) => {
 
-    const {title, path, routes} = menu;
+    const {title, path, routes, hideMenu = false, hideMenuChild = false} = menu;
     const k = `${parentKey? `${parentKey}-`: ''}${key}`;
     stack.push({key: k, ...menu});
 
-    if (_isArray(routes) && !_isEmpty(routes)) {
+    if (hideMenu) return undefined;
+
+    if (_isArray(routes) && !_isEmpty(routes) && !hideMenuChild) {
       return (
         <Menu.SubMenu key={k} title={title}>
-          {recursiveMenus(routes, {key}, stack)}
+          {recursiveMenus(routes, {key: k}, stack)}
         </Menu.SubMenu>
       );
     } else {
@@ -45,12 +52,13 @@ function recursiveMenus (menus, parent = {}, stack = []) {
         </Menu.Item>
       );
     }
-  });
+  }));
 }
 
 function BasicLayout(props) {
 
   const [collapsed, setCollapsed] = useState(false);
+  const [openKeys, setOpenKeys] = useState([]);
   const [selectedKeys, setSelectedKeys] = useState(['0']);
   const [menuItems, setMenuItems] = useState([]);
   const [menuItemsComponent, setMenuItemsComponent] = useState();
@@ -63,16 +71,23 @@ function BasicLayout(props) {
   }, []);
 
   useEffect(() => {
-    const key = _get(_find(menuItems, ({path}) => path === props.location.pathname), ['key']);
+    const key = _get(_find(menuItems, ({path, routes}) => !routes && path === props.location.pathname), ['key']);
     if (key) {
+      const keys = _split(key, '-');
+      if (keys.length > 1) {
+        setOpenKeys(_uniq(_concat(_compact(_map(keys, (v, k) => {
+          const length = keys.length - 1;
+          if (k < length) return _slice(keys, 0, length - k).join('-');
+        })), openKeys)));
+      }
       setSelectedKeys([_toString(key)]);
     }
-  }, [props.location.pathname]);
+  }, [props.location.pathname, JSON.stringify(menuItems)]);
 
   return (
     <Layout style={{height: '100vh'}}>
       <Sider collapsible collapsed={collapsed} onCollapse={v => setCollapsed(v)}>
-        <Menu theme={'dark'} selectedKeys={selectedKeys} mode={'inline'}>
+        <Menu theme={'dark'} openKeys={openKeys} selectedKeys={selectedKeys} mode={'inline'} onOpenChange={setOpenKeys}>
           {menuItemsComponent}
         </Menu>
       </Sider>
